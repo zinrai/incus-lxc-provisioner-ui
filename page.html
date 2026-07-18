@@ -1,0 +1,43 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Incus Provisioner</title>
+<style>
+ body{font-family:sans-serif;max-width:820px;margin:2rem auto;padding:0 1rem}
+ table{border-collapse:collapse;width:100%;margin:.5rem 0}
+ th,td{border:1px solid #ccc;padding:.4rem .6rem;text-align:left}
+ .tab{display:inline-block;padding:.3rem .7rem;margin:0 .3rem .3rem 0;border:1px solid #ccc;border-radius:4px;text-decoration:none;color:#333}
+ .tab.active{background:#333;color:#fff}
+ form.inline{display:inline}
+ .muted{color:#666}
+ .err{color:#b00}
+</style></head><body>
+<p>Signed in as <b>{{.Email}}</b>. Projects you may use:
+{{range .Projects}}<code>{{.}}</code> {{else}}<span class="muted">none</span>{{end}}
+&nbsp;<a href="/oauth2/sign_out?rd=%2F">Log out</a></p>
+
+{{if .Project}}
+<p>{{range .Projects}}<a class="tab {{if eq . $.Project}}active{{end}}" href="/?project={{.}}">{{.}}</a>{{end}}</p>
+{{if .Error}}<p class="err">{{.Error}}</p>{{end}}
+<h2>Containers in <code>{{.Project}}</code></h2>
+<table>
+<tr><th>Name</th><th>Status</th><th>IPv4</th><th>Location</th><th>Actions</th></tr>
+{{range .Containers}}
+<tr><td>{{.Name}}</td><td>{{.Status}}</td><td>{{.IPv4}}</td><td>{{.Location}}</td><td>
+<form class="inline" method="post" action="/action"><input type="hidden" name="project" value="{{$.Project}}"><input type="hidden" name="name" value="{{.Name}}"><input type="hidden" name="action" value="start"><button {{if eq .Status "Running"}}disabled{{end}}>start</button></form>
+<form class="inline" method="post" action="/action"><input type="hidden" name="project" value="{{$.Project}}"><input type="hidden" name="name" value="{{.Name}}"><input type="hidden" name="action" value="stop"><button {{if eq .Status "Stopped"}}disabled{{end}}>stop</button></form>
+<form class="inline" method="post" action="/action"><input type="hidden" name="project" value="{{$.Project}}"><input type="hidden" name="name" value="{{.Name}}"><input type="hidden" name="action" value="delete"><button>delete</button></form>
+</td></tr>
+{{else}}
+<tr><td colspan="5" class="muted">No containers.</td></tr>
+{{end}}
+</table>
+<h3>Create container</h3>
+<form method="post" action="/create">
+<input type="hidden" name="project" value="{{.Project}}">
+name <input name="name" required>
+image <input name="image" value="debian/12" required>
+<button>create</button>
+</form>
+{{else}}
+<p class="muted">Your account is authorized for no project.</p>
+{{end}}
+</body></html>
